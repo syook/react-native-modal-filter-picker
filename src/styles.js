@@ -115,15 +115,21 @@ export default StyleSheet.create({
 		fontSize: 22
 	},
 	createButton: {
-		marginHorizontal: 40,
-		marginVertical: 10,
+		marginHorizontal: 30,
+		marginVertical: 15,
 		padding: 10,
-		backgroundColor: '#FFF',
+		backgroundColor: '#fff',
 		borderWidth: 1,
-		borderColor: '#DDD',
-		borderRadius: 4
+		borderColor: '#fff',
+		borderRadius: 4,
+		shadowColor: 'rgba(0, 0, 0, 0.1)',
+		shadowOpacity: 0.5,
+		elevation: 2,
+		shadowRadius: 2,
+		shadowOffset: { width: 1, height: 10 }
 	},
 	createButtonText: {
-		textAlign: 'center'
+		textAlign: 'center',
+		fontSize: 18
 	}
 });
