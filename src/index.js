@@ -8,8 +8,7 @@ import {
 	Text,
 	TextInput,
 	KeyboardAvoidingView,
-	Platform,
-	Alert
+	Platform
 } from 'react-native'
 
 import styles from './styles'
@@ -38,29 +37,11 @@ export default class ModalFilterPicker extends Component {
 		}
 	}
 
-	renderCreateConfirmation = (text, onPressCreate) => {
-		Alert.alert(
-			'Add option',
-			`Do you want to create '${text}'?`,
-			[
-				{
-					text: 'Yes! Create',
-					onPress: () => onPressCreate && onPressCreate(text)
-				},
-				{
-					text: 'Cancel',
-					style: 'cancel'
-				}
-			],
-			{ cancelable: false }
-		)
-	}
-
 	renderCreateButton = (text, onPressCreate) => (
 		<View>
 			<TouchableOpacity
 				style={styles.createButton}
-				onPress={() => this.renderCreateConfirmation(text, onPressCreate)}>
+				onPress={() => onPressCreate && onPressCreate(text)}>
 				<Text style={styles.createButtonText}>{`Create '${text}'`}</Text>
 			</TouchableOpacity>
 		</View>
@@ -285,9 +266,9 @@ ModalFilterPicker.propTypes = {
 	listContainerStyle: PropTypes.any,
 	optionTextStyle: PropTypes.any,
 	selectedOptionTextStyle: PropTypes.any,
-  keyboardShouldPersistTaps: PropTypes.string,
-  creatable: PropTypes.bool,
-  onPressCreate: PropTypes.func
+	keyboardShouldPersistTaps: PropTypes.string,
+	creatable: PropTypes.bool,
+	onPressCreate: PropTypes.func
 }
 
 ModalFilterPicker.defaultProps = {
