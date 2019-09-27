@@ -120,7 +120,7 @@ export default StyleSheet.create({
 		padding: 10,
 		backgroundColor: '#fff',
 		borderWidth: 1,
-		borderColor: '#fff',
+		borderColor: '#ddd',
 		borderRadius: 4,
 		shadowColor: 'rgba(0, 0, 0, 0.1)',
 		shadowOpacity: 0.5,
