@@ -37,10 +37,10 @@ export default class ModalFilterPicker extends Component {
 		}
 	}
 
-	renderCreateButton = (text, onPressCreate) => (
+	renderCreateButton = (text, onPressCreate, createButtonStyle) => (
 		<View>
 			<TouchableOpacity
-				style={styles.createButton}
+				style={{...styles.createButton, ...createButtonStyle}}
 				onPress={() => onPressCreate && onPressCreate(text)}>
 				<Text style={styles.createButtonText}>{`Create '${text}'`}</Text>
 			</TouchableOpacity>
@@ -129,7 +129,8 @@ export default class ModalFilterPicker extends Component {
 			listViewProps,
 			keyboardShouldPersistTaps,
 			creatable,
-			onClickCreate
+			onClickCreate,
+			createButtonStyle
 		} = this.props
 
 		const { ds } = this.state
@@ -143,7 +144,7 @@ export default class ModalFilterPicker extends Component {
 					renderRow={() => (
 						<View>
 							{creatable ? (
-								this.renderCreateButton(this.state.filter, onClickCreate)
+								this.renderCreateButton(this.state.filter, onClickCreate, createButtonStyle)
 							) : (
 								<View style={styles.noResults}>
 									<Text style={styles.noResultsText}>{noResultsText}</Text>
@@ -266,9 +267,10 @@ ModalFilterPicker.propTypes = {
 	listContainerStyle: PropTypes.any,
 	optionTextStyle: PropTypes.any,
 	selectedOptionTextStyle: PropTypes.any,
+	createButtonStyle: propTypes.any,
 	keyboardShouldPersistTaps: PropTypes.string,
 	creatable: PropTypes.bool,
-	onPressCreate: PropTypes.func
+	onPressCreate: PropTypes.func,
 }
 
 ModalFilterPicker.defaultProps = {
@@ -280,5 +282,6 @@ ModalFilterPicker.defaultProps = {
 	visible: true,
 	showFilter: true,
 	creatable: false,
+	createButtonStyle: {},
 	keyboardShouldPersistTaps: 'never'
 }
