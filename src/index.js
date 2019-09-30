@@ -19,6 +19,7 @@ export default class ModalFilterPicker extends Component {
 
 		this.state = {
 			filter: '',
+			showErrorMessage: false,
 			ds: new ListView.DataSource({
 				rowHasChanged: (r1, r2) => r1.key !== r2.key
 			}).cloneWithRows(props.options)
@@ -32,20 +33,60 @@ export default class ModalFilterPicker extends Component {
 		) {
 			this.setState({
 				filter: '',
+				showErrorMessage: false,
 				ds: this.state.ds.cloneWithRows(this.props.options)
+			})
+		}
+
+		if (
+			this.state.filter &&
+			this.props.errorMessage &&
+			!prevProps.errorMessage
+		) {
+			this.setState({
+				showErrorMessage: true
 			})
 		}
 	}
 
-	renderCreateButton = (text, onPressCreate, createButtonStyle, createButtonTextStyle) => (
+	//on submitting option
+	onClickSubmit = (text, onPressCreate) => {
+		if (onPressCreate) {
+			this.setState(
+				{
+					showErrorMessage: true
+				},
+				onPressCreate(text)
+			)
+		}
+	}
+
+	renderCreateButton = (
+		text,
+		onPressCreate,
+		createButtonStyle,
+		createButtonTextStyle
+	) => (
 		<View>
 			<TouchableOpacity
-				style={{...styles.createButton, ...createButtonStyle}}
-				onPress={() => onPressCreate && onPressCreate(text)}>
-				<Text style={{...styles.createButtonText, ...createButtonTextStyle}}>{`Create '${text}'`}</Text>
+				style={{ ...styles.createButton, ...createButtonStyle }}
+				onPress={() => this.onClickSubmit(text, onPressCreate)}>
+				<Text
+					style={{
+						...styles.createButtonText,
+						...createButtonTextStyle
+					}}>{`Create '${text}'`}</Text>
 			</TouchableOpacity>
 		</View>
 	)
+
+	renderInputError = (inputErrorMessage, showErrorMessage) => {
+		if (showErrorMessage && inputErrorMessage) {
+			return <Text style={styles.errorMessage}>{inputErrorMessage}</Text>
+		}
+
+		return null
+	}
 
 	render() {
 		const {
@@ -93,7 +134,8 @@ export default class ModalFilterPicker extends Component {
 			placeholderText,
 			placeholderTextColor,
 			filterTextInputContainerStyle,
-			filterTextInputStyle
+			filterTextInputStyle,
+			inputErrorMessage
 		} = this.props
 
 		const filter = !showFilter ? null : (
@@ -112,6 +154,7 @@ export default class ModalFilterPicker extends Component {
 					placeholder={placeholderText}
 					style={filterTextInputStyle || styles.filterTextInput}
 				/>
+				{this.renderInputError(inputErrorMessage, this.state.showErrorMessage)}
 			</View>
 		)
 
@@ -145,7 +188,12 @@ export default class ModalFilterPicker extends Component {
 					renderRow={() => (
 						<View>
 							{creatable ? (
-								this.renderCreateButton(this.state.filter, onClickCreate, createButtonStyle, createButtonTextStyle)
+								this.renderCreateButton(
+									this.state.filter,
+									onClickCreate,
+									createButtonStyle,
+									createButtonTextStyle
+								)
 							) : (
 								<View style={styles.noResults}>
 									<Text style={styles.noResultsText}>{noResultsText}</Text>
@@ -235,6 +283,7 @@ export default class ModalFilterPicker extends Component {
 
 		this.setState({
 			filter: text,
+			showErrorMessage: false,
 			ds: this.state.ds.cloneWithRows(filtered)
 		})
 	}
@@ -272,7 +321,7 @@ ModalFilterPicker.propTypes = {
 	createButtonTextStyle: PropTypes.any,
 	keyboardShouldPersistTaps: PropTypes.string,
 	creatable: PropTypes.bool,
-	onPressCreate: PropTypes.func,
+	onPressCreate: PropTypes.func
 }
 
 ModalFilterPicker.defaultProps = {
