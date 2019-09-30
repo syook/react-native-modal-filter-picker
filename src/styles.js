@@ -131,5 +131,10 @@ export default StyleSheet.create({
 	createButtonText: {
 		textAlign: 'center',
 		fontSize: 18
+	},
+	errorMessage: {
+		marginHorizontal: 10,
+		paddingVertical: 4,
+		color: '#ff0000'
 	}
 });
