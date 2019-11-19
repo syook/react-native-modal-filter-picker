@@ -1,51 +1,37 @@
-import React, { Component } from 'react'
-import PropTypes from 'prop-types'
-import {
-	Modal,
-	View,
-	ListView,
-	TouchableOpacity,
-	Text,
-	TextInput,
-	KeyboardAvoidingView,
-	Platform
-} from 'react-native'
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { Modal, View, FlatList, TouchableOpacity, Text, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 
-import styles from './styles'
+import styles from './styles';
 
 export default class ModalFilterPicker extends Component {
+	static keyExtractor(_, index) {
+		return index;
+	}
+
 	constructor(props, ctx) {
-		super(props, ctx)
+		super(props, ctx);
 
 		this.state = {
 			filter: '',
 			showErrorMessage: false,
-			ds: new ListView.DataSource({
-				rowHasChanged: (r1, r2) => r1.key !== r2.key
-			}).cloneWithRows(props.options)
-		}
+			ds: props.options,
+		};
 	}
 
 	componentDidUpdate(prevProps) {
-		if (
-			(!prevProps.visible && this.props.visible) ||
-			prevProps.options !== this.props.options
-		) {
+		if ((!prevProps.visible && this.props.visible) || prevProps.options !== this.props.options) {
 			this.setState({
 				filter: '',
 				showErrorMessage: false,
-				ds: this.state.ds.cloneWithRows(this.props.options)
-			})
+				ds: this.props.options,
+			});
 		}
 
-		if (
-			this.state.filter &&
-			this.props.errorMessage &&
-			!prevProps.errorMessage
-		) {
+		if (this.state.filter && this.props.errorMessage && !prevProps.errorMessage) {
 			this.setState({
-				showErrorMessage: true
-			})
+				showErrorMessage: true,
+			});
 		}
 	}
 
@@ -54,39 +40,56 @@ export default class ModalFilterPicker extends Component {
 		if (onPressCreate) {
 			this.setState(
 				{
-					showErrorMessage: true
+					showErrorMessage: true,
 				},
 				onPressCreate(text)
-			)
+			);
 		}
-	}
+	};
 
-	renderCreateButton = (
-		text,
-		onPressCreate,
-		createButtonStyle,
-		createButtonTextStyle
-	) => (
+	onFilterChange = text => {
+		const { options } = this.props;
+
+		const filter = text.toLowerCase();
+
+		// apply filter to incoming data
+		const filtered = !filter.length
+			? options
+			: options.filter(
+					({ searchKey, label }) =>
+						label.toLowerCase().indexOf(filter) >= 0 ||
+						(searchKey && searchKey.toLowerCase().indexOf(filter) >= 0)
+			  );
+		/* eslint react/no-unused-state:0 */
+		this.setState({
+			filter: text.toLowerCase(),
+			ds: filtered,
+		});
+	};
+
+	renderCreateButton = (text, onPressCreate, createButtonStyle, createButtonTextStyle) => (
 		<View>
 			<TouchableOpacity
 				style={{ ...styles.createButton, ...createButtonStyle }}
-				onPress={() => this.onClickSubmit(text, onPressCreate)}>
+				onPress={() => this.onClickSubmit(text, onPressCreate)}
+			>
 				<Text
 					style={{
 						...styles.createButtonText,
-						...createButtonTextStyle
-					}}>{`Create '${text}'`}</Text>
+						...createButtonTextStyle,
+					}}
+				>{`Create '${text}'`}</Text>
 			</TouchableOpacity>
 		</View>
-	)
+	);
 
 	renderInputError = (inputErrorMessage, showErrorMessage) => {
 		if (showErrorMessage && inputErrorMessage) {
-			return <Text style={styles.errorMessage}>{inputErrorMessage}</Text>
+			return <Text style={styles.errorMessage}>{inputErrorMessage}</Text>;
 		}
 
-		return null
-	}
+		return null;
+	};
 
 	render() {
 		const {
@@ -98,23 +101,23 @@ export default class ModalFilterPicker extends Component {
 			renderCancelButton,
 			visible,
 			modal,
-			onCancel
-		} = this.props
+			onCancel,
+		} = this.props;
 
-		const renderedTitle = !title ? null : (
-			<Text style={titleTextStyle || styles.titleTextStyle}>{title}</Text>
-		)
+		const renderedTitle = !title ? null : <Text style={titleTextStyle || styles.titleTextStyle}>{title}</Text>;
 
 		return (
 			<Modal
 				onRequestClose={onCancel}
 				{...modal}
 				visible={visible}
-				supportedOrientations={['portrait', 'landscape']}>
+				supportedOrientations={['portrait', 'landscape']}
+			>
 				<KeyboardAvoidingView
 					behavior="padding"
 					style={overlayStyle || styles.overlay}
-					enabled={Platform.OS === 'ios'}>
+					enabled={Platform.OS === 'ios'}
+				>
 					<View>{renderedTitle}</View>
 					{(renderList || this.renderList)()}
 					<View style={cancelContainerStyle || styles.cancelContainer}>
@@ -122,31 +125,27 @@ export default class ModalFilterPicker extends Component {
 					</View>
 				</KeyboardAvoidingView>
 			</Modal>
-		)
+		);
 	}
 
 	renderList = () => {
 		const {
 			showFilter,
-			autoFocus,
 			listContainerStyle,
 			androidUnderlineColor,
 			placeholderText,
 			placeholderTextColor,
 			filterTextInputContainerStyle,
 			filterTextInputStyle,
-			inputErrorMessage
-		} = this.props
-
+			autoFocus,
+			inputErrorMessage,
+		} = this.props;
 		const filter = !showFilter ? null : (
-			<View
-				style={
-					filterTextInputContainerStyle || styles.filterTextInputContainer
-				}>
+			<View style={filterTextInputContainerStyle || styles.filterTextInputContainer}>
 				<TextInput
 					onChangeText={this.onFilterChange}
 					autoCorrect={false}
-					blurOnSubmit={true}
+					blurOnSubmit
 					autoFocus={autoFocus}
 					autoCapitalize="none"
 					underlineColorAndroid={androidUnderlineColor}
@@ -156,36 +155,39 @@ export default class ModalFilterPicker extends Component {
 				/>
 				{this.renderInputError(inputErrorMessage, this.state.showErrorMessage)}
 			</View>
-		)
+		);
 
 		return (
 			<View style={listContainerStyle || styles.listContainer}>
 				{filter}
 				{this.renderOptionList()}
 			</View>
-		)
-	}
+		);
+	};
 
 	renderOptionList = () => {
 		const {
 			noResultsText,
-			listViewProps,
+			flatListViewProps,
+			keyExtractor,
 			keyboardShouldPersistTaps,
 			creatable,
 			onClickCreate,
 			createButtonStyle,
-			createButtonTextStyle
-		} = this.props
+			createButtonTextStyle,
+		} = this.props;
 
-		const { ds } = this.state
+		const { ds } = this.state;
 
-		if (1 > ds.getRowCount()) {
+		if (!ds.length) {
 			return (
-				<ListView
+				<FlatList
+					keyboardShouldPersistTaps={keyboardShouldPersistTaps}
 					enableEmptySections={false}
-					{...listViewProps}
-					dataSource={ds.cloneWithRows([{ key: '_none' }])}
-					renderRow={() => (
+					data={[{ key: '_none' }]}
+					keyExtractor={keyExtractor || this.keyExtractor}
+					{...flatListViewProps}
+					renderItem={() => (
 						<View>
 							{creatable ? (
 								this.renderCreateButton(
@@ -202,91 +204,57 @@ export default class ModalFilterPicker extends Component {
 						</View>
 					)}
 				/>
-			)
+			);
 		} else {
 			return (
-				<ListView
-					enableEmptySections={false}
-					{...listViewProps}
-					dataSource={ds}
-					renderRow={this.renderOption}
+				<FlatList
 					keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+					keyExtractor={keyExtractor || this.keyExtractor}
+					{...flatListViewProps}
+					data={ds}
+					renderItem={this.renderOption}
 				/>
-			)
+			);
 		}
-	}
+	};
 
-	renderOption = rowData => {
-		const {
-			selectedOption,
-			renderOption,
-			optionTextStyle,
-			selectedOptionTextStyle
-		} = this.props
+	renderOption = ({ item }) => {
+		const { selectedOption, renderOption, optionTextStyle, selectedOptionTextStyle } = this.props;
 
-		const { key, label } = rowData
+		const { key, label } = item;
 
-		let style = styles.optionStyle
-		let textStyle = optionTextStyle || styles.optionTextStyle
+		let style = styles.optionStyle;
+		let textStyle = optionTextStyle || styles.optionTextStyle;
 
 		if (key === selectedOption) {
-			style = styles.selectedOptionStyle
-			textStyle = selectedOptionTextStyle || styles.selectedOptionTextStyle
+			style = styles.selectedOptionStyle;
+			textStyle = selectedOptionTextStyle || styles.selectedOptionTextStyle;
 		}
 
 		if (renderOption) {
-			return renderOption(rowData, key === selectedOption)
-		} else {
-			return (
-				<TouchableOpacity
-					activeOpacity={0.7}
-					style={style}
-					onPress={() => this.props.onSelect(key)}>
-					<Text style={textStyle}>{label}</Text>
-				</TouchableOpacity>
-			)
+			return renderOption(item, key === selectedOption);
 		}
-	}
+
+		return (
+			<TouchableOpacity activeOpacity={0.7} style={style} onPress={() => this.props.onSelect(key)}>
+				<Text style={textStyle}>{label}</Text>
+			</TouchableOpacity>
+		);
+	};
 
 	renderCancelButton = () => {
-		const {
-			cancelButtonStyle,
-			cancelButtonTextStyle,
-			cancelButtonText
-		} = this.props
+		const { cancelButtonStyle, cancelButtonTextStyle, cancelButtonText } = this.props;
 
 		return (
 			<TouchableOpacity
 				onPress={this.props.onCancel}
 				activeOpacity={0.7}
-				style={cancelButtonStyle || styles.cancelButton}>
-				<Text style={cancelButtonTextStyle || styles.cancelButtonText}>
-					{cancelButtonText}
-				</Text>
+				style={cancelButtonStyle || styles.cancelButton}
+			>
+				<Text style={cancelButtonTextStyle || styles.cancelButtonText}>{cancelButtonText}</Text>
 			</TouchableOpacity>
-		)
-	}
-
-	onFilterChange = text => {
-		const { options } = this.props
-
-		const filter = text.toLowerCase()
-
-		// apply filter to incoming data
-		const filtered = !filter.length
-			? options
-			: options.filter(
-					({ searchKey, label, key }) =>
-						0 <= label.toLowerCase().indexOf(filter) ||
-						(searchKey && 0 <= searchKey.toLowerCase().indexOf(filter))
-			  )
-
-		this.setState({
-			filter: text,
-			showErrorMessage: false,
-			ds: this.state.ds.cloneWithRows(filtered)
-		})
-	}
+		);
+	};
 }
 
 ModalFilterPicker.propTypes = {
@@ -306,7 +274,7 @@ ModalFilterPicker.propTypes = {
 	renderOption: PropTypes.func,
 	renderCancelButton: PropTypes.func,
 	renderList: PropTypes.func,
-	listViewProps: PropTypes.object,
+	flatListViewProps: PropTypes.object,
 	filterTextInputContainerStyle: PropTypes.any,
 	filterTextInputStyle: PropTypes.any,
 	cancelContainerStyle: PropTypes.any,
@@ -321,8 +289,9 @@ ModalFilterPicker.propTypes = {
 	createButtonTextStyle: PropTypes.any,
 	keyboardShouldPersistTaps: PropTypes.string,
 	creatable: PropTypes.bool,
-	onPressCreate: PropTypes.func
-}
+	onPressCreate: PropTypes.func,
+	autoFocus: PropTypes.any,
+};
 
 ModalFilterPicker.defaultProps = {
 	placeholderText: 'Filter...',
@@ -335,5 +304,5 @@ ModalFilterPicker.defaultProps = {
 	creatable: false,
 	createButtonStyle: {},
 	createButtonTextStyle: {},
-	keyboardShouldPersistTaps: 'never'
-}
+	keyboardShouldPersistTaps: 'never',
+};
