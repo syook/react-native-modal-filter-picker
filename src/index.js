@@ -22,7 +22,6 @@ export default class ModalFilterPicker extends Component {
 	componentDidUpdate(prevProps) {
 		if ((!prevProps.visible && this.props.visible) || prevProps.options !== this.props.options) {
 			this.setState({
-				filter: '',
 				showErrorMessage: false,
 				ds: this.props.options,
 			});
