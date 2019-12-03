@@ -24,12 +24,20 @@ export default class ModalFilterPicker extends Component {
 			this.setState({
 				showErrorMessage: false,
 				ds: this.props.options,
+				filter: '',
 			});
 		}
 
 		if (this.state.filter && this.props.errorMessage && !prevProps.errorMessage) {
 			this.setState({
 				showErrorMessage: true,
+			});
+		}
+
+		// toggle error on clearing filters
+		if (this.state.showErrorMessage && !this.state.filter) {
+			this.setState({
+				showErrorMessage: false,
 			});
 		}
 	}
