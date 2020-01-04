@@ -20,19 +20,25 @@ export default class ModalFilterPicker extends Component {
 	}
 
 	componentDidUpdate(prevProps) {
-		if ((!prevProps.visible && this.props.visible) || prevProps.options !== this.props.options) {
-			this.setState({
-				showErrorMessage: false,
-				ds: this.props.options,
-				filter: '',
-			});
+		if (!prevProps.visible && this.props.visible) {
+			this.resetState();
 		}
 
-		if (this.state.filter && this.props.errorMessage && !prevProps.errorMessage) {
-			this.setState({
-				showErrorMessage: true,
-			});
+		// reset search if option changes
+		if (prevProps.options !== this.props.options) {
+			this.setState((state, props) => ({
+				showErrorMessage: false,
+				ds: this.getFiltered(state.filter, props.options),
+				filter: state.filter,
+			}));
 		}
+
+		if (prevProps.visible)
+			if (this.state.filter && this.props.errorMessage && !prevProps.errorMessage) {
+				this.setState({
+					showErrorMessage: true,
+				});
+			}
 
 		// toggle error on clearing filters
 		if (this.state.showErrorMessage && !this.state.filter) {
@@ -41,6 +47,14 @@ export default class ModalFilterPicker extends Component {
 			});
 		}
 	}
+
+	resetState = () => {
+		this.setState({
+			filter: '',
+			showErrorMessage: false,
+			ds: this.props.options,
+		});
+	};
 
 	//on submitting option
 	onClickSubmit = (text, onPressCreate) => {
@@ -57,21 +71,27 @@ export default class ModalFilterPicker extends Component {
 	onFilterChange = text => {
 		const { options } = this.props;
 
-		const filter = text.toLowerCase();
-
-		// apply filter to incoming data
-		const filtered = !filter.length
-			? options
-			: options.filter(
-					({ searchKey, label }) =>
-						label.toLowerCase().indexOf(filter) >= 0 ||
-						(searchKey && searchKey.toLowerCase().indexOf(filter) >= 0)
-			  );
+		// get filtered items
+		const filtered = this.getFiltered(text, options);
 		/* eslint react/no-unused-state:0 */
 		this.setState({
 			filter: text.toLowerCase(),
 			ds: filtered,
 		});
+	};
+
+	getFiltered = (text, options) => {
+		const filter = text.toLowerCase();
+		return !filter.length
+			? options
+			: options.filter(
+					({ searchKey, label }) =>
+						label
+							.toString()
+							.toLowerCase()
+							.indexOf(filter) >= 0 ||
+						(searchKey && searchKey.toLowerCase().indexOf(filter) >= 0)
+			  );
 	};
 
 	renderCreateButton = (text, onPressCreate, createButtonStyle, createButtonTextStyle) => (
@@ -233,7 +253,7 @@ export default class ModalFilterPicker extends Component {
 		let style = styles.optionStyle;
 		let textStyle = optionTextStyle || styles.optionTextStyle;
 
-		if (key === selectedOption) {
+		if (key == selectedOption) {
 			style = styles.selectedOptionStyle;
 			textStyle = selectedOptionTextStyle || styles.selectedOptionTextStyle;
 		}
@@ -277,7 +297,7 @@ ModalFilterPicker.propTypes = {
 	visible: PropTypes.bool,
 	showFilter: PropTypes.bool,
 	modal: PropTypes.object,
-	selectedOption: PropTypes.string,
+	selectedOption: PropTypes.any,
 	renderOption: PropTypes.func,
 	renderCancelButton: PropTypes.func,
 	renderList: PropTypes.func,
